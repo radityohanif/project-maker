@@ -179,6 +179,13 @@ class FooterConfig(BaseModel):
     text: str | None = None
 
 
+class MermaidDiagramConfig(BaseModel):
+    """PNG render options for Mermaid blocks (mermaid-cli / ``mmdc``)."""
+
+    scale: float = Field(default=2.0, ge=1.0, le=4.0)
+    width_cm: float = Field(default=14.0, ge=0.1, le=40.0)
+
+
 class ProposalSpec(BaseModel):
     meta: ProjectMeta
     logos: list[Logo] = Field(default_factory=list)
@@ -187,3 +194,4 @@ class ProposalSpec(BaseModel):
     numbering: NumberingConfig = Field(default_factory=NumberingConfig)
     toc: TocConfig = Field(default_factory=TocConfig)
     footer: FooterConfig = Field(default_factory=FooterConfig)
+    mermaid: MermaidDiagramConfig = Field(default_factory=MermaidDiagramConfig)

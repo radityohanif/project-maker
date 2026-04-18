@@ -45,7 +45,7 @@ class MainFrame(wx.Frame):
     def __init__(self) -> None:
         super().__init__(
             None,
-            title="Project suite — GUI",
+            title="Project Maker",
             size=(720, 560),
             style=wx.DEFAULT_FRAME_STYLE,
         )

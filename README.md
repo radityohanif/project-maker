@@ -203,6 +203,8 @@ Generate flags:
 | `--pdf` | Also produce a PDF alongside the DOCX (via LibreOffice/`docx2pdf`). |
 | `--allow-network` | Permit downloading remote images referenced via `http(s)://`. |
 | `--verbose` | Print a parsed-spec summary before rendering. |
+| `--mermaid-scale FLOAT` | Override Mermaid PNG device scale (`mmdc -s`, range 1–4). Omit to use `mermaid.scale` from the spec. |
+| `--mermaid-width-cm FLOAT` | Override diagram width in the DOCX (cm). Omit to use `mermaid.width_cm` from the spec. |
 
 ### Markdown feature matrix
 
@@ -249,6 +251,9 @@ footer:
 template:
   docx_template: ./templates/corporate.docx
   theme: ./themes/corporate.yaml
+mermaid:
+  scale: 2
+  width_cm: 14
 ---
 
 # Executive Summary
@@ -280,6 +285,8 @@ npm install -g @mermaid-js/mermaid-cli
 ```
 
 Without `mmdc`, diagrams fall back to monospace fenced text and a warning is appended to the document. Example: [`examples/proposal.yaml`](examples/proposal.yaml), [`examples/proposal.md`](examples/proposal.md).
+
+**Sharpness (PNG):** By default, proposals use `mermaid.scale: 2` so `mmdc` runs with a higher Puppeteer device scale (`-s`), which reduces blurry diagrams when Word displays them at `mermaid.width_cm` (default `14`). You can set `mermaid.scale` (1–4) and `mermaid.width_cm` in YAML or Markdown front matter, or override per run with `--mermaid-scale` / `--mermaid-width-cm` on `generate` and `watch`. Higher scale improves crispness at the cost of larger PNGs and slightly slower `mmdc` runs.
 
 ### PDF export
 

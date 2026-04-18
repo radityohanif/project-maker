@@ -73,12 +73,16 @@ def render(
     template_override: Path | None = None,
     theme_override: Path | None = None,
     allow_network: bool = False,
+    mermaid_scale_override: float | None = None,
+    mermaid_width_cm_override: float | None = None,
 ) -> Path:
     """Render ``spec`` into a ``.docx`` file at ``path``.
 
     ``references`` optionally provides substitution values exposed to paragraph
     text as ``{{ timeline_xlsx }}`` / ``{{ quote_xlsx }}`` placeholders.
     ``template_override``/``theme_override`` take precedence over ``spec.template``.
+    CLI overrides for Mermaid (when not ``None``) take precedence over
+    ``spec.mermaid`` for ``scale`` and ``width_cm``.
     """
     template_path = template_override or spec.template.docx_template
     theme_path = theme_override or spec.template.theme
@@ -90,6 +94,13 @@ def render(
     warnings = RenderWarnings()
     substitutions = (references or References()).as_substitutions()
     tmp_dir = Path(tempfile.mkdtemp(prefix="proposal-maker-"))
+
+    m_scale = float(spec.mermaid.scale)
+    m_width_cm = float(spec.mermaid.width_cm)
+    if mermaid_scale_override is not None:
+        m_scale = max(1.0, min(4.0, float(mermaid_scale_override)))
+    if mermaid_width_cm_override is not None:
+        m_width_cm = max(0.1, min(40.0, float(mermaid_width_cm_override)))
 
     _write_header_logos(doc, spec)
     _write_cover(doc, spec)
@@ -110,6 +121,8 @@ def render(
             counter=counter,
             number_headings=spec.numbering.enabled,
             numbering_max_level=spec.numbering.max_level,
+            mermaid_scale=m_scale,
+            mermaid_width_cm=m_width_cm,
         )
 
     if spec.footer.enabled:
@@ -200,6 +213,8 @@ def _write_section(
     counter: _HeadingCounter,
     number_headings: bool,
     numbering_max_level: int,
+    mermaid_scale: float,
+    mermaid_width_cm: float,
 ) -> None:
     heading_text = section.heading
     if number_headings and section.level <= numbering_max_level:
@@ -216,6 +231,8 @@ def _write_section(
             warnings=warnings,
             tmp_dir=tmp_dir,
             allow_network=allow_network,
+            mermaid_scale=mermaid_scale,
+            mermaid_width_cm=mermaid_width_cm,
         )
     for child in section.sections:
         _write_section(
@@ -228,6 +245,8 @@ def _write_section(
             counter=counter,
             number_headings=number_headings,
             numbering_max_level=numbering_max_level,
+            mermaid_scale=mermaid_scale,
+            mermaid_width_cm=mermaid_width_cm,
         )
 
 
@@ -260,6 +279,8 @@ def _write_block(
     warnings: RenderWarnings,
     tmp_dir: Path,
     allow_network: bool,
+    mermaid_scale: float,
+    mermaid_width_cm: float,
 ) -> None:
     if isinstance(block, ParagraphBlock):
         para = doc.add_paragraph()
@@ -285,7 +306,14 @@ def _write_block(
         _write_code(doc, block)
         return
     if isinstance(block, MermaidBlock):
-        _write_mermaid(doc, block, warnings, tmp_dir)
+        _write_mermaid(
+            doc,
+            block,
+            warnings,
+            tmp_dir,
+            scale=mermaid_scale,
+            width_cm=mermaid_width_cm,
+        )
         return
     if isinstance(block, ImageBlock):
         _write_image(doc, block, warnings, tmp_dir, allow_network)
@@ -382,6 +410,9 @@ def _write_mermaid(
     block: MermaidBlock,
     warnings: RenderWarnings,
     tmp_dir: Path,
+    *,
+    scale: float,
+    width_cm: float,
 ) -> None:
     if not mermaid_available():
         warnings.add(
@@ -392,12 +423,12 @@ def _write_mermaid(
         return
     out_png = tmp_dir / f"mermaid-{abs(hash(block.source))}.png"
     try:
-        render_mermaid(block.source, out_png)
+        render_mermaid(block.source, out_png, scale=scale)
     except (MermaidUnavailableError, RuntimeError) as exc:
         warnings.add(f"Mermaid rendering failed: {exc}")
         _write_mermaid_fallback(doc, block)
         return
-    doc.add_picture(str(out_png), width=Cm(14))
+    doc.add_picture(str(out_png), width=Cm(width_cm))
     if block.caption:
         _add_caption(doc, block.caption)
 

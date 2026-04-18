@@ -94,6 +94,16 @@ def generate_cmd(
         "--verbose",
         help="Print a summary of the parsed spec before rendering.",
     ),
+    mermaid_scale: float | None = typer.Option(
+        None,
+        "--mermaid-scale",
+        help="Override Mermaid PNG scale (mmdc -s); 1–4. Omit to use the spec's mermaid.scale.",
+    ),
+    mermaid_width_cm: float | None = typer.Option(
+        None,
+        "--mermaid-width-cm",
+        help="Override diagram width in the DOCX (cm). Omit to use the spec's mermaid.width_cm.",
+    ),
 ) -> None:
     """Parse a spec and write the DOCX proposal."""
     try:
@@ -106,6 +116,8 @@ def generate_cmd(
             template_override=template,
             theme_override=theme,
             allow_network=allow_network,
+            mermaid_scale_override=mermaid_scale,
+            mermaid_width_cm_override=mermaid_width_cm,
         )
         if pdf:
             pdf_path = output.with_suffix(".pdf")
@@ -210,6 +222,16 @@ def watch_cmd(
     template: Path | None = typer.Option(None, "--template"),
     theme: Path | None = typer.Option(None, "--theme"),
     allow_network: bool = typer.Option(False, "--allow-network"),
+    mermaid_scale: float | None = typer.Option(
+        None,
+        "--mermaid-scale",
+        help="Override Mermaid PNG scale (mmdc -s); 1–4.",
+    ),
+    mermaid_width_cm: float | None = typer.Option(
+        None,
+        "--mermaid-width-cm",
+        help="Override diagram width in the DOCX (cm).",
+    ),
 ) -> None:
     """Regenerate the DOCX whenever the input file changes (Ctrl-C to stop)."""
     last_mtime: float = -1.0
@@ -231,6 +253,8 @@ def watch_cmd(
                         template_override=template,
                         theme_override=theme,
                         allow_network=allow_network,
+                        mermaid_scale_override=mermaid_scale,
+                        mermaid_width_cm_override=mermaid_width_cm,
                     )
                     console.print(f"[green]Regenerated[/green] {output}")
                 except Exception as exc:  # noqa: BLE001
