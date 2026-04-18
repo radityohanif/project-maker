@@ -81,11 +81,12 @@ def render(spec: QuoteSpec, path: Path) -> Path:
 
         last_item_row = r - 1
         ws.cell(r, 1, f"Subtotal — {section.title}").font = Font(italic=True)
-        sub_amount = ws.cell(
-            r,
-            5,
-            f"=SUM(E{first_item_row}:E{last_item_row})" if last_item_row >= first_item_row else "=0",
+        sum_expr = (
+            f"=SUM(E{first_item_row}:E{last_item_row})"
+            if last_item_row >= first_item_row
+            else "=0"
         )
+        sub_amount = ws.cell(r, 5, sum_expr)
         sub_amount.number_format = num_fmt
         sub_amount.font = Font(bold=True)
         for col in range(1, 6):
@@ -172,7 +173,6 @@ def render(spec: QuoteSpec, path: Path) -> Path:
         c.border = border
     r += 1
 
-    grand_row = r
     ws.cell(r, 1, "Grand Total")
     ws.cell(r, 2, f"=B{pretax_row}+B{tax_row}")
     ws.cell(r, 2).number_format = num_fmt

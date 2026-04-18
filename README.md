@@ -56,6 +56,23 @@ deck-maker --version
 project-maker --version
 ```
 
+### Desktop GUI (optional)
+
+The `suite-gui` command is a small **wxPython** front-end around the same validate/generate flows as the CLIs (project pack, timeline, quote, proposal, deck).
+
+```bash
+pip install -e ".[dev,gui]"
+suite-gui
+```
+
+On macOS or Linux with GNU Make, from the repository root:
+
+```bash
+make gui
+```
+
+This creates `.venv` if needed, installs the project with the `gui` extra, and launches `suite-gui`. On Windows, activate `.venv` and run `suite-gui` (or `python -m suite_gui`) after `pip install -e ".[dev,gui]"`.
+
 ## Quick start
 
 ```bash

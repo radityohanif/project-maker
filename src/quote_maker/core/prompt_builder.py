@@ -73,7 +73,8 @@ You are helping author a machine-readable quotation specification for the `quote
 - Quote date: **{params.date}**
 - Currency label: **{params.currency}**
 - Markup fraction: **{markup_frac:.4f}** (user entered {params.markup_pct:g}%)
-- Risk fraction: **{risk_frac:.4f}** (user entered {params.risk_pct:g}% of subtotal, before markup base)
+- Risk fraction: **{risk_frac:.4f}** (user entered {params.risk_pct:g}% of subtotal, \
+before markup base)
 - Tax fraction: **{tax_frac:.4f}** (user entered {params.tax_pct:g}%)
 - Default `contract` unit meaning: **{params.default_contract_unit}**
 - Sections hint: **{params.sections_hint or '(no hint provided)'}**

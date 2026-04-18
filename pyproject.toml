@@ -27,6 +27,9 @@ dev = [
     "pytest>=8",
     "ruff>=0.4",
 ]
+gui = [
+    "wxPython>=4.2.1",
+]
 
 [project.scripts]
 timeline-maker = "timeline_maker.cli:app"
@@ -34,6 +37,7 @@ quote-maker = "quote_maker.cli:app"
 proposal-maker = "proposal_maker.cli:app"
 deck-maker = "deck_maker.cli:app"
 project-maker = "project_maker.cli:app"
+suite-gui = "suite_gui.app:main"
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -54,6 +58,7 @@ select = ["E", "F", "I", "UP", "B"]
 "src/proposal_maker/cli.py" = ["B008"]
 "src/project_maker/cli.py" = ["B008"]
 "src/deck_maker/cli.py" = ["B008"]
+"src/suite_gui/main_frame.py" = ["B008"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
