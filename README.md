@@ -90,7 +90,17 @@ timeline-maker --help
 timeline-maker --version
 timeline-maker generate -i examples/timeline.yaml -o build/timeline.xlsx
 timeline-maker validate -i examples/timeline.yaml
+timeline-maker prompt   --quick --strict-markdown -O build/timeline-prompt.md
 ```
+
+### `prompt` — LLM prompt builder
+
+`timeline-maker prompt` runs a small English wizard and emits a Markdown prompt you can paste into any LLM to have it author a timeline YAML matching the schema above.
+
+- `--quick` skips the wizard and uses defaults.
+- `--strict-markdown` asks the model to reply with YAML inside a single fenced block.
+- `-O / --output PATH` writes the prompt to disk (otherwise it is previewed).
+- `--no-preview` disables the syntax-highlighted preview (useful when piping).
 
 ### Spec (YAML)
 
@@ -111,7 +121,7 @@ Task example:
     - [1, 3]
 ```
 
-Slots on **frozen** months are accepted but ignored for shading. Full example: [`examples/timeline.yaml`](examples/timeline.yaml). For interactive wizard, JSON, and LLM **prompt** commands, see [`reference/timeline-maker-main/`](reference/timeline-maker-main/README.md) (reference only; not installed by this repo).
+Slots on **frozen** months are accepted but ignored for shading. Full example: [`examples/timeline.yaml`](examples/timeline.yaml). An upstream-style variant with interactive `generate` wizard and JSON input lives at [`reference/timeline-maker-main/`](reference/timeline-maker-main/README.md) (reference only; not installed by this repo).
 
 ---
 
@@ -124,7 +134,12 @@ One sheet: line items (`position`, cost, qty, contract, amount) and a totals blo
 ```bash
 quote-maker generate -i examples/quote.yaml -o build/quotation.xlsx
 quote-maker validate -i examples/quote.yaml
+quote-maker prompt   --quick -O build/quote-prompt.md
 ```
+
+### `prompt` — LLM prompt builder
+
+`quote-maker prompt` opens a wizard that asks for currency, markup/tax, contract unit, and section hints, then emits a Markdown prompt ready to paste into an LLM. Same flags as `timeline-maker prompt` (`--quick`, `--strict-markdown`, `-O`, `--preview/--no-preview`).
 
 ### Spec (YAML)
 
@@ -151,7 +166,12 @@ proposal-maker generate  -i examples/proposal.yaml -o build/proposal.docx
 proposal-maker validate  -i examples/proposal.md
 proposal-maker import-md -i examples/proposal.md   -o build/proposal.yaml
 proposal-maker watch     -i examples/proposal.md   -o build/proposal.docx
+proposal-maker prompt    --quick -O build/proposal-prompt.md
 ```
+
+### `prompt` — LLM prompt builder
+
+`proposal-maker prompt` asks for project/client names, author, audience, tone, preferred input format (Markdown or YAML), section outline, and which block kinds to encourage (Mermaid, tables, images). It emits a Markdown prompt a model can follow to produce a valid proposal spec. Same flags as the other maker prompts.
 
 Generate flags:
 
@@ -257,7 +277,18 @@ Runs timeline → quote → proposal **in-process**. Writes `timeline.xlsx`, `qu
 ```bash
 project-maker generate -i examples/project.yaml --out-dir build/project/
 project-maker validate -i examples/project.yaml
+project-maker prompt   --quick -O build/project-prompt.md
+project-maker prompt   --only timeline,quote --style three-files -O build/partial-prompt.md
 ```
+
+### `prompt` — combined LLM prompt builder
+
+`project-maker prompt` runs shared questions once (project name, client, date) and then per-section follow-ups, stitching the three sub-prompts into one Markdown file. Extra flags on top of the usual `--quick`, `--strict-markdown`, `-O`, `--preview/--no-preview`:
+
+| Flag | Purpose |
+| ---- | ------- |
+| `--only timeline,quote,proposal` | Include only a subset of sections (default `all`). |
+| `--style single-yaml \| three-files` | Ask the model to produce either one combined `project.yaml` (keys `project` / `timeline` / `pricing` / `proposal`) or three separate documents. |
 
 ### `project.yaml`
 
