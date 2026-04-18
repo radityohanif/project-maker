@@ -4,6 +4,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from deck_maker.core.renderer import render as render_deck
 from project_maker.core.models import ProjectSpec
 from proposal_maker.core.renderer import render as render_proposal
 from quote_maker.core.renderer import render as render_quote
@@ -18,10 +19,11 @@ class OrchestratorResult(BaseModel):
     timeline_xlsx: Path
     quote_xlsx: Path
     proposal_docx: Path
+    presentation_pptx: Path | None = None
 
 
-def run(spec: ProjectSpec, out_dir: Path) -> OrchestratorResult:
-    """Generate timeline.xlsx, quotation.xlsx, and proposal.docx into ``out_dir``."""
+def run(spec: ProjectSpec, out_dir: Path, project_yaml: Path) -> OrchestratorResult:
+    """Generate timeline, quote, proposal, and optional deck into ``out_dir``."""
     ensure_parent(out_dir / ".keep")
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -34,8 +36,16 @@ def run(spec: ProjectSpec, out_dir: Path) -> OrchestratorResult:
     refs = References(timeline_xlsx=timeline_path, quote_xlsx=quote_path)
     render_proposal(spec.proposal, proposal_path, references=refs)
 
+    deck_path: Path | None = None
+    if spec.presentation is not None:
+        base_dir = project_yaml.resolve().parent
+        safe_name = Path(spec.presentation.output_name).name
+        deck_path = out_dir / safe_name
+        render_deck(spec.presentation, deck_path, base_dir=base_dir)
+
     return OrchestratorResult(
         timeline_xlsx=timeline_path,
         quote_xlsx=quote_path,
         proposal_docx=proposal_path,
+        presentation_pptx=deck_path,
     )

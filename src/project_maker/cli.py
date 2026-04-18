@@ -24,7 +24,7 @@ def _version_callback(value: bool) -> None:
 
 app = typer.Typer(
     name="project-maker",
-    help="Run the full proposal pipeline (timeline + quote + proposal) from one YAML.",
+    help="Run the full bid pack (timeline + quote + proposal, optional deck) from one YAML.",
     context_settings={"help_option_names": ["-h", "--help"]},
     invoke_without_command=True,
     no_args_is_help=False,
@@ -66,10 +66,10 @@ def generate_cmd(
         help="Directory where all artifacts will be written.",
     ),
 ) -> None:
-    """Generate timeline.xlsx, quotation.xlsx, and proposal.docx in one pass."""
+    """Generate timeline, quotation, proposal, and optional presentation in one pass."""
     try:
         spec = parse_file(input_path)
-        result = orchestrate(spec, out_dir)
+        result = orchestrate(spec, out_dir, input_path)
     except typer.BadParameter:
         raise
     except Exception as exc:
@@ -78,6 +78,8 @@ def generate_cmd(
     console.print(f"[green]Timeline[/green]  {result.timeline_xlsx}")
     console.print(f"[green]Quotation[/green] {result.quote_xlsx}")
     console.print(f"[green]Proposal[/green]  {result.proposal_docx}")
+    if result.presentation_pptx is not None:
+        console.print(f"[green]Presentation[/green] {result.presentation_pptx}")
 
 
 @app.command("validate")

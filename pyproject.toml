@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "project-suite"
 version = "0.1.0"
-description = "Monorepo of four CLI tools: timeline-maker, quote-maker, proposal-maker, project-maker."
+description = "Monorepo of five CLI tools: timeline-maker, quote-maker, proposal-maker, deck-maker, project-maker."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -17,6 +17,7 @@ dependencies = [
     "pydantic>=2.6",
     "openpyxl>=3.1.2",
     "python-docx>=1.1",
+    "python-pptx>=1.0.2",
     "markdown-it-py>=3.0",
     "mdit-py-plugins>=0.4",
 ]
@@ -31,6 +32,7 @@ dev = [
 timeline-maker = "timeline_maker.cli:app"
 quote-maker = "quote_maker.cli:app"
 proposal-maker = "proposal_maker.cli:app"
+deck-maker = "deck_maker.cli:app"
 project-maker = "project_maker.cli:app"
 
 [tool.setuptools.package-dir]
@@ -51,6 +53,7 @@ select = ["E", "F", "I", "UP", "B"]
 "src/quote_maker/cli.py" = ["B008"]
 "src/proposal_maker/cli.py" = ["B008"]
 "src/project_maker/cli.py" = ["B008"]
+"src/deck_maker/cli.py" = ["B008"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

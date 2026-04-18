@@ -15,9 +15,9 @@ You stay in control: **no cloud APIs**, no accounts—just local CLIs and files 
 
 ---
 
-**One-line summary (e.g. GitHub “About”):** Python 3.11+ monorepo with Typer CLIs that turn YAML (and optional Markdown for proposals) into a Gantt-style timeline `.xlsx`, a quotation `.xlsx`, and a proposal `.docx` — or run all three from a single `project.yaml` via `project-maker`.
+**One-line summary (e.g. GitHub “About”):** Python 3.11+ monorepo with Typer CLIs that turn YAML (and optional Markdown for proposals) into a Gantt-style timeline `.xlsx`, a quotation `.xlsx`, a proposal `.docx`, and optionally a pitch `.pptx` — or run the first three (and the deck when configured) from a single `project.yaml` via `project-maker`.
 
-A small **monorepo** of four installable console tools sharing a `shared/` layer (`schemas`, YAML helpers). Parsers and renderers live under each package’s `core/`; CLIs only orchestrate Typer → parse → validate → generate.
+A small **monorepo** of five installable console tools sharing a `shared/` layer (`schemas`, YAML helpers). Parsers and renderers live under each package’s `core/`; CLIs only orchestrate Typer → parse → validate → generate.
 
 **Design:** no external APIs; deterministic output from your inputs only. **Optional:** [mermaid-cli](https://github.com/mermaid-js/mermaid-cli) (`mmdc` on `PATH`) for Mermaid diagrams in proposals.
 
@@ -45,12 +45,14 @@ Console scripts (from `[project.scripts]`):
 | `timeline-maker` | YAML | Gantt-style `.xlsx` |
 | `quote-maker` | YAML | Quotation `.xlsx` |
 | `proposal-maker` | YAML or Markdown (with front matter, tables, base64 images, Mermaid) | Proposal `.docx` (optional `.pdf`) |
-| `project-maker` | `project.yaml` | All three artifacts |
+| `deck-maker` | Deck YAML | `.pptx` |
+| `project-maker` | `project.yaml` | Timeline + quote + proposal (optional `.pptx` when `presentation` is set) |
 
 ```bash
 timeline-maker --version
 quote-maker --version
 proposal-maker --version
+deck-maker --version
 project-maker --version
 ```
 
@@ -60,6 +62,7 @@ project-maker --version
 timeline-maker  generate -i examples/timeline.yaml  -o build/timeline.xlsx
 quote-maker       generate -i examples/quote.yaml     -o build/quotation.xlsx
 proposal-maker    generate -i examples/proposal.yaml -o build/proposal.docx
+deck-maker        generate -i examples/deck.yaml -o build/deck.pptx
 project-maker     generate -i examples/project.yaml --out-dir build/project/
 ```
 
@@ -69,6 +72,7 @@ project-maker     generate -i examples/project.yaml --out-dir build/project/
 timeline-maker  validate -i examples/timeline.yaml
 quote-maker       validate -i examples/quote.yaml
 proposal-maker    validate -i examples/proposal.yaml
+deck-maker        validate -i examples/deck.yaml
 project-maker     validate -i examples/project.yaml
 ```
 
@@ -270,9 +274,29 @@ Tries LibreOffice (`soffice --headless --convert-to pdf`) first, falls back to `
 
 ---
 
+## `deck-maker`
+
+Builds a `.pptx` from a YAML deck spec: ordered `slides`, each with a `type` discriminator (`title`, `section`, `bullets`, `table`, `image`). **Relative image paths** in an `image` slide are resolved from the directory that contains the YAML file you pass to `generate` (for `project-maker`, that is the directory of `project.yaml`).
+
+Remote images (`source.url`) are **not** fetched unless `allow_network: true` is set on the deck root (same idea as `proposal-maker --allow-network`). Placeholder services such as [placehold.co](https://placehold.co/600x400) therefore require that flag and network access at generate time.
+
+Optional root fields: `output_name` (default `presentation.pptx`, used by `project-maker` only), `template` (path to a `.pptx` to use as a slide master; must exist when set).
+
+### Commands
+
+```bash
+deck-maker --help
+deck-maker generate -i examples/deck.yaml -o build/deck.pptx
+deck-maker validate -i examples/deck.yaml
+```
+
+Example: [`examples/deck.yaml`](examples/deck.yaml).
+
+---
+
 ## `project-maker` (orchestrator)
 
-Runs timeline → quote → proposal **in-process**. Writes `timeline.xlsx`, `quotation.xlsx`, `proposal.docx` under `--out-dir` / `-d`.
+Runs timeline → quote → proposal **in-process**. Writes `timeline.xlsx`, `quotation.xlsx`, and `proposal.docx` under `--out-dir` / `-d`. If the orchestrator YAML includes an optional `presentation` block, it also writes a PowerPoint file (default filename `presentation.pptx`, or `presentation.output_name` such as `pitch.pptx`).
 
 ```bash
 project-maker generate -i examples/project.yaml --out-dir build/project/
@@ -298,8 +322,9 @@ project-maker prompt   --only timeline,quote --style three-files -O build/partia
 | `timeline` | Same shape as standalone timeline YAML |
 | `pricing` | Same shape as standalone quote YAML |
 | `proposal` | Same shape as standalone proposal YAML |
+| `presentation` | Optional. Same shape as a standalone deck YAML root (see `deck-maker`): `slides`, optional `allow_network`, `output_name`, `template` |
 
-Example: [`examples/project.yaml`](examples/project.yaml).
+Examples: [`examples/project.yaml`](examples/project.yaml) (no deck), [`examples/project-with-deck.yaml`](examples/project-with-deck.yaml) (includes `presentation`).
 
 ---
 
@@ -315,6 +340,7 @@ project-maker/
     timeline_maker/
     quote_maker/
     proposal_maker/
+    deck_maker/
     project_maker/
   tests/
 ```

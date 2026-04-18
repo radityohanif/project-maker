@@ -1,0 +1,20 @@
+title: "Example deck"
+allow_network: false
+slides:
+  - type: title
+    title: "Sample pitch"
+    subtitle: "YAML-driven deck"
+    meta: "Optional meta line"
+  - type: section
+    title: "Overview"
+  - type: bullets
+    title: "Highlights"
+    bullets:
+      - "Defined in YAML"
+      - "Rendered with python-pptx"
+  - type: table
+    title: "Sample table"
+    headers: ["Column A", "Column B"]
+    rows:
+      - ["Row 1", 100]
+      - ["Row 2", 200]

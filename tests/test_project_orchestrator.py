@@ -10,7 +10,7 @@ EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "project.yaml"
 
 def test_orchestrator_produces_all_three_artifacts(tmp_path: Path) -> None:
     spec = parse_file(EXAMPLE)
-    result = run(spec, tmp_path)
+    result = run(spec, tmp_path, EXAMPLE)
     assert result.timeline_xlsx.exists()
     assert result.quote_xlsx.exists()
     assert result.proposal_docx.exists()

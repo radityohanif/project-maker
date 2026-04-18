@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from deck_maker.core.models import PresentationSpec
 from proposal_maker.core.models import ProposalSpec
 from quote_maker.core.models import QuoteSpec
 from shared.schemas.common import ProjectMeta
@@ -15,5 +16,6 @@ class ProjectSpec(BaseModel):
     timeline: TimelineSpec
     pricing: QuoteSpec
     proposal: ProposalSpec
+    presentation: PresentationSpec | None = None
 
     model_config = {"populate_by_name": True}

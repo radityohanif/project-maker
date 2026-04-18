@@ -1,0 +1,68 @@
+project:
+  name: "Project X"
+  client: "Acme Corp"
+  date: "2026-04-18"
+
+timeline:
+  meta:
+    sheet_title: "Project X timeline"
+    version: "1"
+    updated: "2026-04-18"
+  timeline:
+    start_year: 2026
+    start_month: 5
+    num_months: 2
+    weeks_per_month: 4
+    freeze_month_indices: []
+  months:
+    - "May '26"
+    - "Jun '26"
+  rows:
+    - kind: phase
+      label: "Phase 1"
+    - kind: task
+      label: "Task A"
+      slots:
+        - [0, 0]
+
+pricing:
+  currency: "IDR"
+  markup: 0.10
+  tax: 0.11
+  sections:
+    - title: "Services"
+      items:
+        - position: "Developer"
+          qty: 1
+          unit_cost: 1000000
+          contract: 1
+
+proposal:
+  logos: []
+  sections:
+    - heading: "Summary"
+      level: 1
+      blocks:
+        - kind: paragraph
+          text: "Short proposal for deck example."
+
+presentation:
+  output_name: "pitch.pptx"
+  allow_network: false
+  slides:
+    - type: title
+      title: "Project X"
+      subtitle: "Acme Corp"
+      meta: "2026-04-18"
+    - type: section
+      title: "Agenda"
+    - type: bullets
+      title: "Goals"
+      bullets:
+        - "Align on scope"
+        - "Show plan and commercial summary"
+    - type: table
+      title: "Commercial snapshot"
+      headers: ["Item", "Amount"]
+      rows:
+        - ["Developer (1 mo)", 1000000]
