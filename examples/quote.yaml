@@ -1,0 +1,40 @@
+meta:
+  name: "Project X"
+  client: "Acme Corp"
+  date: "2026-04-18"
+currency: "IDR"
+markup: 0.30
+tax: 0.11
+sections:
+  - title: "Man Power"
+    items:
+      - position: "Business Analyst"
+        qty: 1
+        unit_cost: 13000000
+        contract: 10
+      - position: "Tech Lead"
+        qty: 1
+        unit_cost: 15000000
+        contract: 10
+      - position: "Full Stack Developer"
+        qty: 2
+        unit_cost: 8000000
+        contract: 10
+      - position: "UI/UX Designer"
+        qty: 1
+        unit_cost: 7000000
+        contract: 5
+      - position: "Quality Assurance"
+        qty: 1
+        unit_cost: 7000000
+        contract: 10
+  - title: "Working Tools"
+    items:
+      - position: "Laptop rental"
+        qty: 3
+        unit_cost: 350000
+        contract: 10
+      - position: "Cloud dev sandbox"
+        qty: 1
+        unit_cost: 2500000
+        contract: 10

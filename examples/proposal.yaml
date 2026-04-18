@@ -1,0 +1,58 @@
+meta:
+  name: "Project X — Proposal"
+  client: "Acme Corp"
+  date: "2026-04-18"
+logos: []
+sections:
+  - heading: "Executive Summary"
+    level: 1
+    blocks:
+      - kind: paragraph
+        text: >-
+          Project X delivers a modern internal platform replacing three legacy
+          tools. This document outlines scope, approach, timeline, and pricing.
+      - kind: list
+        items:
+          - "Reduce manual workflows by 60%."
+          - "Ship v1 within the next four calendar months."
+          - "Align with the client's existing cloud landing zone."
+  - heading: "Scope of Work"
+    level: 1
+    blocks:
+      - kind: paragraph
+        text: "We will deliver the following outcomes in three phases."
+    sections:
+      - heading: "In Scope"
+        level: 2
+        blocks:
+          - kind: list
+            items:
+              - "Core data model and REST API"
+              - "Admin web UI"
+              - "SSO integration with the client IdP"
+      - heading: "Out of Scope"
+        level: 2
+        blocks:
+          - kind: list
+            items:
+              - "Mobile apps"
+              - "Legacy data migration beyond the last 12 months"
+  - heading: "Architecture"
+    level: 1
+    blocks:
+      - kind: paragraph
+        text: "The high-level system flow is shown below."
+      - kind: mermaid
+        source: |
+          flowchart LR
+            user[User] --> web[Web App]
+            web --> api[API]
+            api --> db[(Database)]
+        caption: "Figure 1 — High-level architecture."
+  - heading: "References"
+    level: 1
+    blocks:
+      - kind: paragraph
+        text: >-
+          The full timeline is provided in {{ timeline_xlsx }} and the priced
+          quotation in {{ quote_xlsx }}.

@@ -1,0 +1,58 @@
+meta:
+  sheet_title: "Project X timeline"
+  version: "1"
+  updated: "2026-04-18"
+  calendar_note: "Symbolic weeks per month (not ISO)."
+  freeze_note: "No frozen months."
+timeline:
+  start_year: 2026
+  start_month: 5
+  num_months: 4
+  weeks_per_month: 4
+  freeze_month_indices: []
+months:
+  - "May '26"
+  - "Jun '26"
+  - "Jul '26"
+  - "Aug '26"
+rows:
+  - kind: phase
+    label: "Phase 1 — Discovery"
+  - kind: task
+    label: "Requirements gathering"
+    slots:
+      - [0, 0]
+      - [0, 1]
+  - kind: task
+    label: "Architecture draft"
+    slots:
+      - [0, 2]
+      - [0, 3]
+      - [1, 0]
+  - kind: phase
+    label: "Phase 2 — Build"
+  - kind: task
+    label: "Implementation sprint 1"
+    slots:
+      - [1, 1]
+      - [1, 2]
+      - [1, 3]
+  - kind: task
+    label: "Implementation sprint 2"
+    slots:
+      - [2, 0]
+      - [2, 1]
+      - [2, 2]
+  - kind: task
+    label: "QA and UAT"
+    slots:
+      - [2, 3]
+      - [3, 0]
+      - [3, 1]
+  - kind: phase
+    label: "Phase 3 — Launch"
+  - kind: task
+    label: "Go-live and handover"
+    slots:
+      - [3, 2]
+      - [3, 3]
