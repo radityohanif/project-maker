@@ -10,6 +10,7 @@ def _spec() -> QuoteSpec:
         meta=ProjectMeta(name="T"),
         currency="IDR",
         markup=0.10,
+        risk=0.0,
         tax=0.11,
         sections=[
             QuoteSection(
@@ -39,6 +40,8 @@ def test_section_subtotal_sums_items() -> None:
 def test_totals_combines_subtotal_markup_tax() -> None:
     t: QuoteTotals = totals(_spec())
     expected_sub = (2 * 1000 * 3 + 1 * 500 * 2) + (1 * 2000 * 1)
+    assert t.risk_amount == 0.0
+    assert t.base_for_markup == expected_sub
     expected_markup = round(expected_sub * 0.10, 2)
     expected_pre = expected_sub + expected_markup
     expected_tax = round(expected_pre * 0.11, 2)
@@ -48,3 +51,27 @@ def test_totals_combines_subtotal_markup_tax() -> None:
     assert t.pre_tax == expected_pre
     assert t.tax_amount == expected_tax
     assert t.grand_total == expected_grand
+
+
+def test_totals_risk_then_markup_on_subtotal_plus_risk() -> None:
+    spec = QuoteSpec(
+        meta=ProjectMeta(name="T"),
+        currency="IDR",
+        markup=0.50,
+        risk=0.20,
+        tax=0.0,
+        sections=[
+            QuoteSection(
+                title="A",
+                items=[QuoteItem(position="x", qty=1, unit_cost=1000, contract=1)],
+            ),
+        ],
+    )
+    t = totals(spec)
+    assert t.subtotal == 1000.0
+    assert t.risk_amount == 200.0
+    assert t.base_for_markup == 1200.0
+    assert t.markup_amount == 600.0
+    assert t.pre_tax == 1800.0
+    assert t.tax_amount == 0.0
+    assert t.grand_total == 1800.0

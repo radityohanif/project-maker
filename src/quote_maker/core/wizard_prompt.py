@@ -22,6 +22,11 @@ def run_prompt_wizard(console: Console) -> PromptParams:
         default=30.0,
         minimum=0.0,
     )
+    risk_pct = ask_float(
+        "Risk / contingency percentage on subtotal (e.g. 20 for 20%)",
+        default=20.0,
+        minimum=0.0,
+    )
     tax_pct = ask_float(
         "Tax percentage (e.g. 11 for 11%)",
         default=11.0,
@@ -45,6 +50,7 @@ def run_prompt_wizard(console: Console) -> PromptParams:
         date=date or "(unspecified)",
         currency=currency,
         markup_pct=markup_pct,
+        risk_pct=risk_pct,
         tax_pct=tax_pct,
         default_contract_unit=contract_unit,
         sections_hint=sections_hint,
@@ -61,6 +67,7 @@ def run_prompt_wizard_simple(console: Console) -> PromptParams:
         date="2026-04-18",
         currency="IDR",
         markup_pct=30.0,
+        risk_pct=20.0,
         tax_pct=11.0,
         default_contract_unit="months of engagement",
         sections_hint="Man Power; Working Tools",

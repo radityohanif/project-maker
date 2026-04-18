@@ -57,6 +57,7 @@ timeline:
 pricing:
   currency: "IDR"
   markup: 0.30
+  risk: 0.20
   tax: 0.11
   sections:
     - title: "Man Power"

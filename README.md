@@ -127,7 +127,7 @@ Slots on **frozen** months are accepted but ignored for shading. Full example: [
 
 ## `quote-maker`
 
-One sheet: line items (`position`, cost, qty, contract, amount) and a totals block (subtotal, markup, pre-tax, tax, grand total).
+One sheet: line items (`position`, cost, qty, contract) with **Excel formulas** for amount (`cost * qty * contract`) and section `SUM` subtotals. The summary block uses formulas too: editable **rate** cells for **risk** (default 20% of subtotal in YAML), **markup** (on subtotal + risk), **tax**, then pre-tax and grand total.
 
 ### Commands
 
@@ -139,7 +139,7 @@ quote-maker prompt   --quick -O build/quote-prompt.md
 
 ### `prompt` — LLM prompt builder
 
-`quote-maker prompt` opens a wizard that asks for currency, markup/tax, contract unit, and section hints, then emits a Markdown prompt ready to paste into an LLM. Same flags as `timeline-maker prompt` (`--quick`, `--strict-markdown`, `-O`, `--preview/--no-preview`).
+`quote-maker prompt` opens a wizard that asks for currency, markup, risk on subtotal, tax, contract unit, and section hints, then emits a Markdown prompt ready to paste into an LLM. Same flags as `timeline-maker prompt` (`--quick`, `--strict-markdown`, `-O`, `--preview/--no-preview`).
 
 ### Spec (YAML)
 
@@ -148,9 +148,9 @@ quote-maker prompt   --quick -O build/quote-prompt.md
 | `meta` | `name`, optional `client`, `date` |
 | `currency` | Number format label (default `IDR`) |
 | `sections` | `title` + `items[]` |
-| `markup`, `tax` | Fractions (e.g. `0.30`, `0.11`) |
+| `markup`, `risk`, `tax` | Fractions; `risk` defaults to `0.20` (20% of subtotal). Markup applies to `(subtotal + risk amount)`. |
 
-Per item: `position`, `qty`, `unit_cost`, `contract`, optional `note`. Amount: `qty * unit_cost * contract`. Example: [`examples/quote.yaml`](examples/quote.yaml).
+Per item: `position`, `qty`, `unit_cost`, `contract`, optional `note`. Line amounts in the workbook are computed in Excel from cost, qty, and contract. Example: [`examples/quote.yaml`](examples/quote.yaml).
 
 ---
 

@@ -27,4 +27,9 @@ class QuoteSpec(BaseModel):
     currency: str = Field(default="IDR", max_length=8)
     sections: list[QuoteSection] = Field(default_factory=list)
     markup: float = Field(default=0.0, ge=0, description="Markup fraction, e.g. 0.30 for 30%.")
+    risk: float = Field(
+        default=0.20,
+        ge=0,
+        description="Risk/contingency fraction applied to subtotal before markup base.",
+    )
     tax: float = Field(default=0.0, ge=0, description="Tax fraction, e.g. 0.11 for 11%.")

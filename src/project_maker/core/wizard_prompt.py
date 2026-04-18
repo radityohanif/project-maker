@@ -58,6 +58,11 @@ def run_prompt_wizard(
         console.print("\n[bold cyan]Quote section[/bold cyan]")
         currency = ask_text("Currency label (<=8 chars)", default="IDR")
         markup_pct = ask_float("Markup percentage", default=30.0, minimum=0.0)
+        risk_pct = ask_float(
+            "Risk / contingency percentage on subtotal",
+            default=20.0,
+            minimum=0.0,
+        )
         tax_pct = ask_float("Tax percentage", default=11.0, minimum=0.0)
         contract_unit = ask_text(
             "What does the `contract` multiplier mean for this quote?",
@@ -73,6 +78,7 @@ def run_prompt_wizard(
             date=date or "(unspecified)",
             currency=currency,
             markup_pct=markup_pct,
+            risk_pct=risk_pct,
             tax_pct=tax_pct,
             default_contract_unit=contract_unit,
             sections_hint=sections_hint,
@@ -167,6 +173,7 @@ def run_prompt_wizard_simple(
             date=date,
             currency="IDR",
             markup_pct=30.0,
+            risk_pct=20.0,
             tax_pct=11.0,
             default_contract_unit="months of engagement",
             sections_hint="Man Power; Working Tools",
