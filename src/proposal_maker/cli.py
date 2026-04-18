@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import typer
 from rich.console import Console
 
 from proposal_maker import __version__
+from proposal_maker.core.md_to_yaml import convert as convert_md_to_yaml
 from proposal_maker.core.parser import parse_file
+from proposal_maker.core.pdf import PdfConversionError, convert_docx_to_pdf
 from proposal_maker.core.renderer import render
+from proposal_maker.core.validator import check_file_refs
 from proposal_maker.core.validator import validate as validate_spec
 
 console = Console()
@@ -62,11 +66,51 @@ def generate_cmd(
         "-o",
         help="Destination .docx path.",
     ),
+    template: Path | None = typer.Option(
+        None,
+        "--template",
+        help="Override DOCX template path (inherits styles, fonts, page size).",
+    ),
+    theme: Path | None = typer.Option(
+        None,
+        "--theme",
+        help="Override theme YAML path (fonts, base size, heading color).",
+    ),
+    pdf: bool = typer.Option(
+        False,
+        "--pdf",
+        help="Also produce a PDF alongside the DOCX (requires LibreOffice or docx2pdf).",
+    ),
+    allow_network: bool = typer.Option(
+        False,
+        "--allow-network",
+        help="Permit downloading remote images referenced via http(s) URLs.",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Print a summary of the parsed spec before rendering.",
+    ),
 ) -> None:
     """Parse a spec and write the DOCX proposal."""
     try:
         spec = parse_file(input_path)
-        render(spec, output)
+        if verbose:
+            _print_summary(spec)
+        render(
+            spec,
+            output,
+            template_override=template,
+            theme_override=theme,
+            allow_network=allow_network,
+        )
+        if pdf:
+            pdf_path = output.with_suffix(".pdf")
+            try:
+                convert_docx_to_pdf(output, pdf_path)
+                console.print(f"[green]Wrote PDF to[/green] {pdf_path}")
+            except PdfConversionError as exc:
+                console.print(f"[yellow]PDF skipped:[/yellow] {exc}")
     except typer.BadParameter:
         raise
     except Exception as exc:
@@ -86,15 +130,125 @@ def validate_cmd(
         readable=True,
         help="Path to the proposal spec (.yaml/.yml or .md/.markdown).",
     ),
+    strict: bool = typer.Option(
+        False,
+        "--strict",
+        help="Treat asset/path warnings as errors.",
+    ),
 ) -> None:
     """Validate a spec file without writing any output."""
     try:
         spec = parse_file(input_path)
         validate_spec(spec)
+        warnings = check_file_refs(spec)
     except Exception as exc:
         console.print(f"[bold red]Invalid:[/bold red] {exc}")
         raise typer.Exit(1) from exc
+    for msg in warnings:
+        console.print(f"[yellow]warning:[/yellow] {msg}")
+    if strict and warnings:
+        raise typer.Exit(1)
     console.print(f"[green]OK[/green] {input_path}")
+
+
+@app.command("import-md")
+def import_md_cmd(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        "-i",
+        exists=True,
+        dir_okay=False,
+        readable=True,
+        help="Markdown (.md/.markdown) file to import.",
+    ),
+    output: Path = typer.Option(
+        ...,
+        "--output",
+        "-o",
+        help="Destination YAML spec path.",
+    ),
+) -> None:
+    """Convert a Markdown proposal into an equivalent YAML spec."""
+    suffix = input_path.suffix.lower()
+    if suffix not in (".md", ".markdown"):
+        console.print(f"[bold red]Error:[/bold red] expected a .md/.markdown file, got {suffix!r}")
+        raise typer.Exit(1)
+    try:
+        convert_md_to_yaml(input_path, output)
+    except Exception as exc:
+        console.print(f"[bold red]Error:[/bold red] {exc}")
+        raise typer.Exit(1) from exc
+    console.print(f"[green]Wrote YAML spec to[/green] {output}")
+
+
+@app.command("watch")
+def watch_cmd(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        "-i",
+        exists=True,
+        dir_okay=False,
+        readable=True,
+        help="Proposal spec to watch for changes.",
+    ),
+    output: Path = typer.Option(
+        Path("proposal.docx"),
+        "--output",
+        "-o",
+        help="Destination .docx path.",
+    ),
+    interval: float = typer.Option(
+        1.0,
+        "--interval",
+        help="Polling interval in seconds.",
+    ),
+    template: Path | None = typer.Option(None, "--template"),
+    theme: Path | None = typer.Option(None, "--theme"),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Regenerate the DOCX whenever the input file changes (Ctrl-C to stop)."""
+    last_mtime: float = -1.0
+    console.print(f"[cyan]Watching {input_path} (interval={interval}s)[/cyan]")
+    try:
+        while True:
+            try:
+                mtime = input_path.stat().st_mtime
+            except FileNotFoundError:
+                time.sleep(interval)
+                continue
+            if mtime != last_mtime:
+                last_mtime = mtime
+                try:
+                    spec = parse_file(input_path)
+                    render(
+                        spec,
+                        output,
+                        template_override=template,
+                        theme_override=theme,
+                        allow_network=allow_network,
+                    )
+                    console.print(f"[green]Regenerated[/green] {output}")
+                except Exception as exc:  # noqa: BLE001
+                    console.print(f"[yellow]Build failed:[/yellow] {exc}")
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        console.print("[cyan]Stopped.[/cyan]")
+
+
+def _print_summary(spec) -> None:
+    from proposal_maker.core.validator import _walk_sections
+
+    counts: dict[str, int] = {}
+    section_count = 0
+    for s in _walk_sections(spec.sections):
+        section_count += 1
+        for b in s.blocks:
+            counts[b.kind] = counts.get(b.kind, 0) + 1
+    console.print(f"[cyan]meta.name:[/cyan] {spec.meta.name}")
+    console.print(f"[cyan]sections:[/cyan] {section_count}")
+    console.print(f"[cyan]blocks:[/cyan] {counts}")
 
 
 if __name__ == "__main__":

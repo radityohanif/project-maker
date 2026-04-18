@@ -11,6 +11,11 @@ class ProjectMeta(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     client: str | None = Field(default=None, max_length=200)
     date: str | None = Field(default=None, max_length=64)
+    author: str | None = Field(default=None, max_length=200)
+    version: str | None = Field(default=None, max_length=64)
+    doc_id: str | None = Field(default=None, max_length=128)
+    confidential: bool = False
+    subtitle: str | None = Field(default=None, max_length=400)
 
 
 class References(BaseModel):

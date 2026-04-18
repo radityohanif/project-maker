@@ -44,7 +44,7 @@ Console scripts (from `[project.scripts]`):
 |--------|--------|--------|
 | `timeline-maker` | YAML | Gantt-style `.xlsx` |
 | `quote-maker` | YAML | Quotation `.xlsx` |
-| `proposal-maker` | YAML or `.md` | Proposal `.docx` |
+| `proposal-maker` | YAML or Markdown (with front matter, tables, base64 images, Mermaid) | Proposal `.docx` (optional `.pdf`) |
 | `project-maker` | `project.yaml` | All three artifacts |
 
 ```bash
@@ -141,16 +141,89 @@ Per item: `position`, `qty`, `unit_cost`, `contract`, optional `note`. Amount: `
 
 ## `proposal-maker`
 
-Word document from **YAML** or **Markdown** (`markdown-it-py`). Nested sections, paragraphs, lists, images, page breaks, Mermaid blocks.
+Word document from **YAML** or **Markdown**. Both formats are first-class: the same `ProposalSpec` powers each. Use whichever fits the workflow — author narrative in Markdown, or keep the structured YAML for templated bid packs.
 
 ### Commands
 
 ```bash
-proposal-maker generate -i examples/proposal.yaml -o build/proposal.docx
-proposal-maker validate -i examples/proposal.yaml
+proposal-maker generate  -i examples/proposal.md   -o build/proposal.docx
+proposal-maker generate  -i examples/proposal.yaml -o build/proposal.docx
+proposal-maker validate  -i examples/proposal.md
+proposal-maker import-md -i examples/proposal.md   -o build/proposal.yaml
+proposal-maker watch     -i examples/proposal.md   -o build/proposal.docx
 ```
 
-Markdown: use `.md` / `.markdown`.
+Generate flags:
+
+| Flag | Purpose |
+| ---- | ------- |
+| `--template PATH` | Base DOCX template (inherits styles, fonts, page size). |
+| `--theme PATH` | Theme YAML (font family, base size, heading color). |
+| `--pdf` | Also produce a PDF alongside the DOCX (via LibreOffice/`docx2pdf`). |
+| `--allow-network` | Permit downloading remote images referenced via `http(s)://`. |
+| `--verbose` | Print a parsed-spec summary before rendering. |
+
+### Markdown feature matrix
+
+| Markdown | Becomes | Notes |
+| -------- | ------- | ----- |
+| `# … ######` | Nested `Section` tree | Google-Docs-style `{#anchor}` suffixes are stripped. |
+| `**bold**`, `*italic*`, `` `code` ``, `~~strike~~`, `[link](url)` | Styled `InlineRun` | Bold/italic/underline/strike/code/link preserved in DOCX runs. |
+| `- item`, `1. item` | `ListBlock` | Nested content inside a bullet is flushed as sibling blocks. |
+| `> quote` | `QuoteBlock` | Rendered with "Intense Quote" or "Quote" style. |
+| ` ```lang ... ``` ` | `CodeBlock` | ` ```mermaid ` is handled as `MermaidBlock`. |
+| `---` | `PageBreakBlock` | Emits a Word page break. |
+| GFM tables `| a | b |` | `TableBlock` | Header row rendered bold; body rows preserve inline formatting. |
+| `![alt](path)` | `ImageBlock` | Relative paths resolve next to the `.md`. |
+| `![alt][id]` + `[id]: <data:image/png;base64,...>` | `ImageBlock` | Base64 images are decoded to `build/_images/img-<hash>.<ext>`. |
+| `![alt](http://…)` | `ImageBlock(url=…)` | Fetched only when `--allow-network` is set. |
+
+### YAML front matter
+
+Optional front matter at the top of a Markdown file populates the same fields as `ProposalSpec`:
+
+```markdown
+---
+meta:
+  name: "Project X — Proposal"
+  client: "Acme Corp"
+  date: "2026-04-18"
+  author: "Tetra Data Teknologi"
+  version: "1.0"
+  confidential: true
+  subtitle: "Internal platform modernization"
+logos: []
+toc:
+  enabled: true
+  depth: 3
+  title: "Table of Contents"
+numbering:
+  enabled: true
+  format: "1.1.1"
+  max_level: 4
+footer:
+  enabled: true
+  page_numbers: true
+  text: "Project X Proposal"
+template:
+  docx_template: ./templates/corporate.docx
+  theme: ./themes/corporate.yaml
+---
+
+# Executive Summary
+...
+```
+
+### Template and theme
+
+- **Template** (`--template`): an existing `.docx` whose styles, fonts, and page geometry are inherited.
+- **Theme** (`--theme`): a YAML like [`examples/themes/corporate.yaml`](examples/themes/corporate.yaml) overriding `font_family`, `base_size_pt`, and `heading_color_hex` on top of the template (or the default styles).
+
+### TOC, heading numbering, footer
+
+- Enable `toc.enabled` → a Word `TOC` field is inserted; readers press F9 (or reopen) to refresh it.
+- Enable `numbering.enabled` → headings are auto-prefixed with `1.`, `1.1.`, etc. Pre-numbered headings (e.g. `# 1. Executive Summary`) are left alone.
+- `footer.enabled` adds a centered "Page X of Y" via Word `PAGE`/`NUMPAGES` fields; `footer.text` and `meta.confidential` are appended on the left.
 
 ### Path placeholders
 
@@ -165,7 +238,15 @@ In paragraph text (e.g. when driven by `project-maker`):
 npm install -g @mermaid-js/mermaid-cli
 ```
 
-Without `mmdc`, diagrams fall back to monospace fenced text; warnings may appear in the document. Example: [`examples/proposal.yaml`](examples/proposal.yaml).
+Without `mmdc`, diagrams fall back to monospace fenced text and a warning is appended to the document. Example: [`examples/proposal.yaml`](examples/proposal.yaml), [`examples/proposal.md`](examples/proposal.md).
+
+### PDF export
+
+```bash
+proposal-maker generate -i examples/proposal.md -o build/proposal.docx --pdf
+```
+
+Tries LibreOffice (`soffice --headless --convert-to pdf`) first, falls back to `docx2pdf` (install with `pip install docx2pdf`). If neither is available the DOCX still succeeds and a non-fatal warning is printed.
 
 ---
 
