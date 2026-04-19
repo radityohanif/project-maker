@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import typer
@@ -123,11 +124,29 @@ def prompt_cmd(
         "--preview/--no-preview",
         help="Show a syntax-highlighted preview in the terminal (still writes --output).",
     ),
+    rate_bands: Path | None = typer.Option(
+        None,
+        "--rate-bands",
+        exists=True,
+        dir_okay=False,
+        readable=True,
+        help="YAML min/max rate bands per role; omit to use wizard default or bundled table.",
+    ),
+    no_rate_bands: bool = typer.Option(
+        False,
+        "--no-rate-bands",
+        help="Do not include role rate band guidance in the prompt.",
+    ),
 ) -> None:
     """Build an English LLM prompt that produces a quotation YAML spec."""
     try:
         params = run_prompt_wizard_simple(console) if quick else run_prompt_wizard(console)
-        params.strict_markdown = strict or params.strict_markdown
+        params = replace(
+            params,
+            strict_markdown=strict or params.strict_markdown,
+            include_rate_bands=False if no_rate_bands else params.include_rate_bands,
+            rate_bands_file=rate_bands if rate_bands is not None else params.rate_bands_file,
+        )
         text = build_ai_prompt(params)
     except Exception as exc:
         console.print(f"[bold red]Error:[/bold red] {exc}")

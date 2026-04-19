@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from rich.console import Console
 
 from quote_maker.core.prompt_builder import PromptParams
@@ -40,6 +42,22 @@ def run_prompt_wizard(console: Console) -> PromptParams:
         "Section hint (free text, e.g. 'Man Power; Working Tools; Licenses')",
         default="Man Power; Working Tools",
     )
+    include_rate_bands = ask_bool(
+        "Include internal role rate bands (for monthly `unit_cost`) in the prompt?",
+        default=True,
+    )
+    rate_bands_file: Path | None = None
+    if include_rate_bands:
+        rb_hint = ask_text_optional(
+            "Rate bands YAML path (blank = bundled default table)",
+            default="",
+        )
+        if rb_hint:
+            rb_path = Path(rb_hint).expanduser()
+            if not rb_path.is_file():
+                msg = f"Rate bands file not found: {rb_path}"
+                raise FileNotFoundError(msg)
+            rate_bands_file = rb_path
     strict = ask_bool(
         "Require strict markdown (YAML only inside one ```yaml fence in the model reply)?",
         default=False,
@@ -55,6 +73,8 @@ def run_prompt_wizard(console: Console) -> PromptParams:
         default_contract_unit=contract_unit,
         sections_hint=sections_hint,
         strict_markdown=strict,
+        include_rate_bands=include_rate_bands,
+        rate_bands_file=rate_bands_file,
     )
 
 

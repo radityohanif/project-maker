@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
+from quote_maker.core.rate_bands import rate_bands_section
 from shared.prompt import strict_markdown_clause
 
 
@@ -19,6 +21,8 @@ class PromptParams:
     default_contract_unit: str
     sections_hint: str
     strict_markdown: bool
+    include_rate_bands: bool = True
+    rate_bands_file: Path | None = None
 
 
 MINIMAL_YAML_EXAMPLE = """\
@@ -57,6 +61,10 @@ def build_ai_prompt(params: PromptParams) -> str:
     markup_frac = params.markup_pct / 100.0
     risk_frac = params.risk_pct / 100.0
     tax_frac = params.tax_pct / 100.0
+    rate_bands_md = rate_bands_section(
+        include=params.include_rate_bands,
+        path=params.rate_bands_file,
+    )
     return f"""\
 You are helping author a machine-readable quotation specification for the `quote-maker` CLI.
 
@@ -78,7 +86,7 @@ before markup base)
 - Tax fraction: **{tax_frac:.4f}** (user entered {params.tax_pct:g}%)
 - Default `contract` unit meaning: **{params.default_contract_unit}**
 - Sections hint: **{params.sections_hint or '(no hint provided)'}**
-
+{rate_bands_md}
 ## Schema (conceptual)
 Top-level keys:
 - `meta`: `name` (required), optional `client`, `date`, `author`, `version`, `doc_id`, `subtitle`,

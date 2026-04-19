@@ -1,0 +1,22 @@
+# Guidance for LLM-authored quotes: typical monthly `unit_cost` ranges (IDR).
+# Override with your own file via `quote-maker prompt --rate-bands path/to.yaml`.
+currency: IDR
+unit_note: >-
+  Monthly rate per person before markup/tax; use raw integers in YAML `unit_cost`
+  (no thousands separators). Pick a value inside the band from seniority and scope.
+bands:
+  - position: Business Analyst
+    min: 8000000
+    max: 15000000
+  - position: Full Stack Developer
+    min: 8000000
+    max: 12000000
+  - position: Architect/Tech Lead
+    min: 14000000
+    max: 18000000
+  - position: Security Engineer
+    min: 7000000
+    max: 18000000
+  - position: QA
+    min: 6000000
+    max: 9000000
