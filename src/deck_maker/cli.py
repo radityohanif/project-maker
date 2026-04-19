@@ -7,8 +7,11 @@ from rich.console import Console
 
 from deck_maker import __version__
 from deck_maker.core.parser import parse_file
+from deck_maker.core.prompt_builder import build_ai_prompt
 from deck_maker.core.renderer import render
 from deck_maker.core.validator import validate as validate_spec
+from deck_maker.core.wizard_prompt import run_prompt_wizard, run_prompt_wizard_simple
+from shared.prompt import write_or_preview
 
 console = Console()
 
@@ -95,6 +98,42 @@ def validate_cmd(
         console.print(f"[bold red]Invalid:[/bold red] {exc}")
         raise typer.Exit(1) from exc
     console.print(f"[green]OK[/green] {input_path}")
+
+
+@app.command("prompt")
+def prompt_cmd(
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-O",
+        help="Write the assembled prompt to a file instead of stdout.",
+    ),
+    quick: bool = typer.Option(
+        False,
+        "--quick",
+        help="Skip questions and emit a default-stuffed prompt template.",
+    ),
+    strict: bool = typer.Option(
+        False,
+        "--strict-markdown",
+        help="Ask the model to return YAML only inside a single fenced block.",
+    ),
+    preview: bool = typer.Option(
+        True,
+        "--preview/--no-preview",
+        help="Show a syntax-highlighted preview in the terminal (still writes --output).",
+    ),
+) -> None:
+    """Build an English LLM prompt that produces a deck YAML spec."""
+    try:
+        params = run_prompt_wizard_simple(console) if quick else run_prompt_wizard(console)
+        params.strict_markdown = strict or params.strict_markdown
+        text = build_ai_prompt(params)
+    except Exception as exc:
+        console.print(f"[bold red]Error:[/bold red] {exc}")
+        raise typer.Exit(1) from exc
+
+    write_or_preview(console, text, output, preview)
 
 
 if __name__ == "__main__":

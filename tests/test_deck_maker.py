@@ -8,6 +8,7 @@ from pptx import Presentation
 
 from deck_maker.core.images import resolve_image_path
 from deck_maker.core.models import DeckImageSource, ImageSlide, PresentationSpec
+from deck_maker.core.prompt_builder import PromptParams, build_ai_prompt
 from deck_maker.core.parser import parse_file
 from deck_maker.core.renderer import render
 
@@ -88,3 +89,21 @@ def test_resolve_image_path_url_blocked() -> None:
     src = DeckImageSource(url="https://example.com/x.png")
     with pytest.raises(ValueError, match="allow_network"):
         resolve_image_path(src, base_dir=Path("."), allow_network=False)
+
+
+def test_build_ai_prompt_includes_deck_schema() -> None:
+    text = build_ai_prompt(
+        PromptParams(
+            deck_title="Pitch",
+            topic_hint="Series A",
+            allow_network=False,
+            output_name="deck.pptx",
+            template_path="",
+            slides_hint="title; bullets",
+            strict_markdown=True,
+        )
+    )
+    assert "deck-maker" in text
+    assert "Pitch" in text
+    assert "allow_network" in text
+    assert "type: table" in text or "`type: table`" in text
