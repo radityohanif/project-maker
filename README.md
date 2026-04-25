@@ -15,7 +15,7 @@ You stay in control: **no cloud APIs**, no accounts—just local CLIs and files 
 
 ---
 
-**One-line summary (e.g. GitHub “About”):** Python 3.11+ monorepo with Typer CLIs that turn YAML (and optional Markdown for proposals) into a Gantt-style timeline `.xlsx`, a quotation `.xlsx`, a proposal `.docx`, and optionally a pitch `.pptx` — or run the first three (and the deck when configured) from a single `project.yaml` via `project-maker`. Includes a general-purpose `file-converter` for converting documents between DOCX, PDF, and Markdown.
+**One-line summary (e.g. GitHub “About”):** Python 3.11+ monorepo with Typer CLIs that turn YAML (and optional Markdown for proposals) into a Gantt-style timeline `.xlsx`, a quotation `.xlsx`, a proposal `.docx`, and optionally a pitch `.pptx` — or run the first three (and the deck when configured) from a single `project.yaml` via `project-maker`. Includes a general-purpose `convert` for converting documents between DOCX, PDF, and Markdown.
 
 A small **monorepo** of five installable console tools sharing a `shared/` layer (`schemas`, YAML helpers). Parsers and renderers live under each package’s `core/`; CLIs only orchestrate Typer → parse → validate → generate.
 
@@ -47,7 +47,7 @@ Console scripts (from `[project.scripts]`):
 | `proposal-maker` | YAML or Markdown (with front matter, tables, base64 images, Mermaid) | Proposal `.docx` (optional `.pdf`) |
 | `deck-maker` | Deck YAML | `.pptx` |
 | `project-maker` | `project.yaml` | Timeline + quote + proposal (optional `.pptx` when `presentation` is set) |
-| `file-converter` | `.docx`, `.pdf`, or `.md` | Any of the other three formats |
+| `convert` | `.docx`, `.pdf`, or `.md` | Any of the other three formats |
 
 ```bash
 timeline-maker --version
@@ -55,10 +55,10 @@ quote-maker --version
 proposal-maker --version
 deck-maker --version
 project-maker --version
-file-converter --version
+convert --version
 ```
 
-### `file-converter` dependencies (optional)
+### `convert` dependencies (optional)
 
 PDF-related conversions require extra libraries not installed by default:
 
@@ -98,8 +98,8 @@ proposal-maker    generate -i examples/proposal.yaml -o build/proposal.docx
 deck-maker        generate -i examples/deck.yaml -o build/deck.pptx
 project-maker     generate -i examples/project.yaml --out-dir build/project/
 
-file-converter  convert -i build/project/proposal.docx -o build/project/proposal.pdf
-file-converter  convert -i some-document.pdf -o extracted.md --no-images
+convert  convert -i build/project/proposal.docx -o build/project/proposal.pdf
+convert  convert -i some-document.pdf -o extracted.md --no-images
 ```
 
 **Validate** (parse only, no files written):
@@ -371,16 +371,16 @@ Examples: [`examples/project.yaml`](examples/project.yaml) (no deck), [`examples
 
 ---
 
-## `file-converter`
+## `convert`
 
 General-purpose document converter between **DOCX**, **PDF**, and **Markdown**. Auto-detects the conversion direction from the input and output file extensions.
 
 ### Commands
 
 ```bash
-file-converter --help
-file-converter --version
-file-converter convert -i INPUT -o OUTPUT [--images/--no-images]
+convert --help
+convert --version
+convert convert -i INPUT -o OUTPUT [--images/--no-images]
 ```
 
 ### Supported conversions
@@ -398,28 +398,28 @@ file-converter convert -i INPUT -o OUTPUT [--images/--no-images]
 
 ```bash
 # DOCX → PDF
-file-converter convert -i proposal.docx -o proposal.pdf
+convert convert -i proposal.docx -o proposal.pdf
 
 # PDF → DOCX
-file-converter convert -i report.pdf -o report.docx
+convert convert -i report.pdf -o report.docx
 
 # PDF → Markdown (with embedded base64 images, default)
-file-converter convert -i report.pdf -o report.md
+convert convert -i report.pdf -o report.md
 
 # PDF → Markdown (text only, no images — much smaller output)
-file-converter convert -i report.pdf -o report.md --no-images
+convert convert -i report.pdf -o report.md --no-images
 
 # DOCX → Markdown (with embedded images)
-file-converter convert -i contract.docx -o contract.md
+convert convert -i contract.docx -o contract.md
 
 # DOCX → Markdown (skip images)
-file-converter convert -i contract.docx -o contract.md --no-images
+convert convert -i contract.docx -o contract.md --no-images
 
 # Markdown → DOCX
-file-converter convert -i notes.md -o notes.docx
+convert convert -i notes.md -o notes.docx
 
 # Markdown → PDF
-file-converter convert -i notes.md -o notes.pdf
+convert convert -i notes.md -o notes.pdf
 ```
 
 ### `--images` / `--no-images`

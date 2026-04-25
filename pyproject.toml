@@ -42,7 +42,7 @@ proposal-maker = "proposal_maker.cli:app"
 deck-maker = "deck_maker.cli:app"
 project-maker = "project_maker.cli:app"
 suite-gui = "suite_gui.app:main"
-file-converter = "file_converter.cli:app"
+convert = "file_converter.cli:app"
 
 [tool.setuptools.package-dir]
 "" = "src"
