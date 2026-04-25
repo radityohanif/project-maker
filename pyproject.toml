@@ -30,6 +30,10 @@ dev = [
 gui = [
     "wxPython>=4.2.1",
 ]
+converter = [
+    "pymupdf>=1.24",
+    "pdf2docx>=0.5.8",
+]
 
 [project.scripts]
 timeline-maker = "timeline_maker.cli:app"
@@ -38,6 +42,7 @@ proposal-maker = "proposal_maker.cli:app"
 deck-maker = "deck_maker.cli:app"
 project-maker = "project_maker.cli:app"
 suite-gui = "suite_gui.app:main"
+convert = "file_converter.cli:app"
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -62,6 +67,7 @@ select = ["E", "F", "I", "UP", "B"]
 "src/project_maker/cli.py" = ["B008"]
 "src/deck_maker/cli.py" = ["B008"]
 "src/suite_gui/main_frame.py" = ["B008"]
+"src/file_converter/cli.py" = ["B008"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
