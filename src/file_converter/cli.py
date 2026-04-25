@@ -14,6 +14,7 @@ from file_converter.core.converters import (
     md_to_pdf,
     pdf_to_docx,
     pdf_to_md,
+    strip_md_images,
 )
 
 console = Console()
@@ -160,6 +161,54 @@ def _main(
                 docx_to_md(input_path, output_path, include_images=images)
             case ("md", "docx"):
                 md_to_docx(input_path, output_path)
+    except Exception as exc:
+        console.print(f"[bold red]Error:[/bold red] {exc}")
+        raise typer.Exit(1) from exc
+
+    console.print(f"[green]Done:[/green] {output_path}")
+
+
+@app.command("strip-images")
+def strip_images_cmd(
+    input_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        dir_okay=False,
+        readable=True,
+        help="Input Markdown file (.md).",
+    ),
+    output_path: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        dir_okay=False,
+        help="Output .md file. Defaults to <stem>-no-images.md in the same directory.",
+    ),
+) -> None:
+    """Remove embedded images from a Markdown file.
+
+    \b
+    Strips:
+      - Inline base64 images: ![alt](data:image/...;base64,...)
+      - Reference-style image links: ![][label]
+      - Base64 reference definitions: [label]: <data:image/...>
+
+    \b
+    Examples:
+      file-converter strip-images prd.md
+      file-converter strip-images prd.md -o prd-clean.md
+    """
+    if input_path.suffix.lower() != ".md":
+        console.print(
+            f"[bold red]Error:[/bold red] Input must be a .md file, got [yellow]{input_path.suffix}[/yellow]"
+        )
+        raise typer.Exit(1)
+
+    if output_path is None:
+        output_path = input_path.with_name(input_path.stem + "-no-images.md")
+
+    try:
+        strip_md_images(input_path, output_path)
     except Exception as exc:
         console.print(f"[bold red]Error:[/bold red] {exc}")
         raise typer.Exit(1) from exc

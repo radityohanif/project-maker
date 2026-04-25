@@ -1,8 +1,9 @@
-"""Six conversion functions: docx↔pdf, pdf↔md, docx↔md."""
+"""Conversion functions: docx↔pdf, pdf↔md, docx↔md, plus MD image stripping."""
 
 from __future__ import annotations
 
 import base64
+import re
 import tempfile
 from pathlib import Path
 
@@ -253,3 +254,42 @@ def md_to_pdf(input_path: Path, output_path: Path) -> None:
         tmp_docx = Path(tmp) / "intermediate.docx"
         md_to_docx(input_path, tmp_docx)
         docx_to_pdf(tmp_docx, output_path)
+
+
+# ─── MD STRIP IMAGES ─────────────────────────────────────────────────────────
+
+# Matches: [label]: <data:...> or [label]: data:...
+_REF_DEF_RE = re.compile(r"^\[([^\]]+)\]:\s*<?data:[^\n>]*>?\s*$", re.MULTILINE)
+
+# Matches: ![alt](data:...)
+_INLINE_IMG_RE = re.compile(r"!\[[^\]]*\]\(data:[^)]*\)")
+
+
+def strip_md_images(input_path: Path, output_path: Path) -> None:
+    """Remove embedded images from a Markdown file.
+
+    Removes:
+    - Inline base64 images: ![alt](data:image/...;base64,...)
+    - Reference-style image links: ![][label] / ![alt][label]
+    - Reference definitions pointing to data URIs: [label]: <data:...>
+    """
+    text = input_path.read_text(encoding="utf-8")
+
+    # Collect labels of base64 reference definitions, then remove the definitions
+    base64_labels = {m.group(1) for m in _REF_DEF_RE.finditer(text)}
+    text = _REF_DEF_RE.sub("", text)
+
+    # Remove image references that use those labels
+    if base64_labels:
+        labels_pat = "|".join(re.escape(lbl) for lbl in base64_labels)
+        img_ref_re = re.compile(r"!\[[^\]]*\]\[(?:" + labels_pat + r")\]")
+        text = img_ref_re.sub("", text)
+
+    # Remove inline base64 images
+    text = _INLINE_IMG_RE.sub("", text)
+
+    # Collapse runs of 3+ blank lines left behind by removed images
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(text.strip() + "\n", encoding="utf-8")
