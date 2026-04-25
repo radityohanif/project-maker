@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 import typer
 from rich.console import Console
@@ -26,7 +27,6 @@ _SUPPORTED: set[tuple[str, str]] = {
     ("md", "docx"),
 }
 
-# Conversions where --images/--no-images is meaningful
 _IMAGES_RELEVANT: set[tuple[str, str]] = {("pdf", "md"), ("docx", "md")}
 
 
@@ -45,27 +45,11 @@ app = typer.Typer(
 )
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def _main(
     ctx: typer.Context,
-    version: bool = typer.Option(
-        False,
-        "--version",
-        "-V",
-        help="Show version and exit.",
-        callback=_version_callback,
-        is_eager=True,
-    ),
-) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-        raise typer.Exit(0)
-
-
-@app.command("convert")
-def convert_cmd(
-    input_path: Path = typer.Option(
-        ...,
+    input_path: Optional[Path] = typer.Option(
+        None,
         "--input",
         "-i",
         exists=True,
@@ -73,12 +57,12 @@ def convert_cmd(
         readable=True,
         help="Input file (.docx, .pdf, or .md).",
     ),
-    output_path: Path = typer.Option(
-        ...,
+    output_path: Optional[Path] = typer.Option(
+        None,
         "--output",
         "-o",
         dir_okay=False,
-        help="Output file — extension determines target format.",
+        help="Output file — extension determines target format. Omit to be prompted.",
     ),
     images: bool = typer.Option(
         True,
@@ -87,6 +71,14 @@ def convert_cmd(
             "Embed images as base64 in Markdown output. "
             "Only relevant for → .md conversions; ignored otherwise."
         ),
+    ),
+    version: bool = typer.Option(
+        False,
+        "--version",
+        "-V",
+        help="Show version and exit.",
+        callback=_version_callback,
+        is_eager=True,
     ),
 ) -> None:
     """Convert a document between DOCX, PDF, and Markdown.
@@ -101,11 +93,42 @@ def convert_cmd(
       .md   → .docx
 
     \b
-    Image option (only for → .md):
-      --images      embed images as base64 inline in the Markdown (default)
-      --no-images   skip images; produces lighter, text-only Markdown
+    Examples:
+      file-converter -i proposal.docx -o proposal.pdf
+      file-converter -i proposal.docx              # prompts for output format
     """
+    if ctx.invoked_subcommand is not None:
+        return
+
+    if input_path is None:
+        typer.echo(ctx.get_help())
+        raise typer.Exit(0)
+
     src_ext = input_path.suffix.lstrip(".").lower()
+
+    if output_path is None:
+        targets = sorted(b for (a, b) in _SUPPORTED if a == src_ext)
+        if not targets:
+            console.print(
+                f"[bold red]Error:[/bold red] No supported conversions from [yellow].{src_ext}[/yellow]"
+            )
+            raise typer.Exit(1)
+
+        if len(targets) == 1:
+            dst_ext = targets[0]
+            console.print(f"[dim]Output format: .{dst_ext}[/dim]")
+        else:
+            choices = ", ".join(f".{t}" for t in targets)
+            choice = typer.prompt(f"Output format [{choices}]", default=targets[0])
+            dst_ext = choice.lstrip(".").lower()
+            if dst_ext not in targets:
+                console.print(
+                    f"[bold red]Error:[/bold red] Invalid choice. Pick from: {choices}"
+                )
+                raise typer.Exit(1)
+
+        output_path = input_path.with_suffix(f".{dst_ext}")
+
     dst_ext = output_path.suffix.lstrip(".").lower()
     pair = (src_ext, dst_ext)
 

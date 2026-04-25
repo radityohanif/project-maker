@@ -98,8 +98,8 @@ proposal-maker    generate -i examples/proposal.yaml -o build/proposal.docx
 deck-maker        generate -i examples/deck.yaml -o build/deck.pptx
 project-maker     generate -i examples/project.yaml --out-dir build/project/
 
-convert  convert -i build/project/proposal.docx -o build/project/proposal.pdf
-convert  convert -i some-document.pdf -o extracted.md --no-images
+file-converter -i build/project/proposal.docx -o build/project/proposal.pdf
+file-converter -i some-document.pdf -o extracted.md --no-images
 ```
 
 **Validate** (parse only, no files written):
@@ -378,9 +378,10 @@ General-purpose document converter between **DOCX**, **PDF**, and **Markdown**. 
 ### Commands
 
 ```bash
-convert --help
-convert --version
-convert convert -i INPUT -o OUTPUT [--images/--no-images]
+file-converter --help
+file-converter --version
+file-converter -i INPUT -o OUTPUT [--images/--no-images]
+file-converter -i INPUT                  # prompts for output format if -o is omitted
 ```
 
 ### Supported conversions
@@ -398,28 +399,31 @@ convert convert -i INPUT -o OUTPUT [--images/--no-images]
 
 ```bash
 # DOCX → PDF
-convert convert -i proposal.docx -o proposal.pdf
+file-converter -i proposal.docx -o proposal.pdf
 
 # PDF → DOCX
-convert convert -i report.pdf -o report.docx
+file-converter -i report.pdf -o report.docx
 
 # PDF → Markdown (with embedded base64 images, default)
-convert convert -i report.pdf -o report.md
+file-converter -i report.pdf -o report.md
 
 # PDF → Markdown (text only, no images — much smaller output)
-convert convert -i report.pdf -o report.md --no-images
+file-converter -i report.pdf -o report.md --no-images
 
 # DOCX → Markdown (with embedded images)
-convert convert -i contract.docx -o contract.md
+file-converter -i contract.docx -o contract.md
 
 # DOCX → Markdown (skip images)
-convert convert -i contract.docx -o contract.md --no-images
+file-converter -i contract.docx -o contract.md --no-images
 
 # Markdown → DOCX
-convert convert -i notes.md -o notes.docx
+file-converter -i notes.md -o notes.docx
 
 # Markdown → PDF
-convert convert -i notes.md -o notes.pdf
+file-converter -i notes.md -o notes.pdf
+
+# Omit -o to be prompted for output format
+file-converter -i proposal.docx
 ```
 
 ### `--images` / `--no-images`
