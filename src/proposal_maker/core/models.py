@@ -98,6 +98,15 @@ class TableBlock(BaseModel):
     rows: list[list[list[InlineRun]]] = Field(default_factory=list)
     caption: str | None = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_yaml_shorthand(cls, data: object) -> object:
+        if not isinstance(data, dict) or data.get("kind") != "table":
+            return data
+        from proposal_maker.core.table_shorthand import coerce_table_block_data
+
+        return coerce_table_block_data(data)
+
     @model_validator(mode="after")
     def _require_content(self) -> TableBlock:
         if not self.header and not self.rows:

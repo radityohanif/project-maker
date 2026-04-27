@@ -22,6 +22,25 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
+def _print_proposal_table_coercion_hints(
+    console: Console,
+    hints: list[dict[str, str]],
+) -> None:
+    if not hints:
+        return
+    console.print()
+    console.print(
+        "[bold yellow]Proposal — table blocks used YAML shorthand.[/bold yellow] "
+        "Generation [green]continued successfully[/green]. "
+        "Copy the blocks below to fix the source, or give them to an LLM as context."
+    )
+    for i, h in enumerate(hints, 1):
+        title = f"Table {i} / {len(hints)}"
+        console.print(f"\n[bold]{title}[/bold]  {h['summary']}")
+        console.print("\n[dim]Suggested prompt (copy for ChatGPT, etc.):[/dim]\n")
+        console.print(h["llm_prompt"])
+
+
 app = typer.Typer(
     name="project-maker",
     help="Run the full bid pack (timeline + quote + proposal, optional deck) from one YAML.",
@@ -68,13 +87,15 @@ def generate_cmd(
 ) -> None:
     """Generate timeline, quotation, proposal, and optional presentation in one pass."""
     try:
-        spec = parse_file(input_path)
+        coercions: list[dict[str, str]] = []
+        spec = parse_file(input_path, out_table_coercion_hints=coercions)
         result = orchestrate(spec, out_dir, input_path)
     except typer.BadParameter:
         raise
     except Exception as exc:
         console.print(f"[bold red]Error:[/bold red] {exc}")
         raise typer.Exit(1) from exc
+    _print_proposal_table_coercion_hints(console, coercions)
     console.print(f"[green]Timeline[/green]  {result.timeline_xlsx}")
     console.print(f"[green]Quotation[/green] {result.quote_xlsx}")
     console.print(f"[green]Proposal[/green]  {result.proposal_docx}")
@@ -96,11 +117,13 @@ def validate_cmd(
 ) -> None:
     """Validate the orchestrator spec without generating any output."""
     try:
-        spec = parse_file(input_path)
+        coercions: list[dict[str, str]] = []
+        spec = parse_file(input_path, out_table_coercion_hints=coercions)
         validate_spec(spec)
     except Exception as exc:
         console.print(f"[bold red]Invalid:[/bold red] {exc}")
         raise typer.Exit(1) from exc
+    _print_proposal_table_coercion_hints(console, coercions)
     console.print(f"[green]OK[/green] {input_path}")
 
 
