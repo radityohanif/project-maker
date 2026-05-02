@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "project-suite"
 version = "0.1.0"
-description = "Monorepo of five CLI tools: timeline-maker, quote-maker, proposal-maker, deck-maker, project-maker."
+description = "Monorepo of six CLI tools: timeline-maker, quote-maker, proposal-maker, deck-maker, project-maker, pdf-to-png."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -43,6 +43,7 @@ deck-maker = "deck_maker.cli:app"
 project-maker = "project_maker.cli:app"
 suite-gui = "suite_gui.app:main"
 convert = "file_converter.cli:app"
+pdf-to-png = "pdf_to_png.cli:app"
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -68,6 +69,7 @@ select = ["E", "F", "I", "UP", "B"]
 "src/deck_maker/cli.py" = ["B008"]
 "src/suite_gui/main_frame.py" = ["B008"]
 "src/file_converter/cli.py" = ["B008"]
+"src/pdf_to_png/cli.py" = ["B008"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
